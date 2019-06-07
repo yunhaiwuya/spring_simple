@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd
+            http://www.springframework.org/schema/rabbit
+            http://www.springframework.org/schema/rabbit/spring-rabbit-1.3.xsd">
+
+    <!-- http://www.cnblogs.com/crazylqy/p/6567598.html -->
+   <!-- 连接服务配置  -->
+   <rabbit:connection-factory id="connectionFactory" 
+        host="localhost" 
+        username="cjm"
+        password="admin_cjm" 
+        port="5672"  
+        channel-cache-size="50"/>
+   <rabbit:admin connection-factory="connectionFactory"/>
+   <!--定义消息队列-->
+   <!-- queue 队列声明-->
+   <rabbit:queue id="spring-test-queue1" durable="true" auto-delete="false" exclusive="false" name="spring-test-queue1"></rabbit:queue>
+   <rabbit:queue name="spring-test-queue2" durable="true" auto-delete="false" exclusive="false"></rabbit:queue>
+   <!--交换机定义-->
+   <!--rabbit:direct-exchange：定义exchange模式为direct，
+                   意思就是消息与一个特定的路由键完全匹配，才会转发。
+        rabbit:binding：设置消息queue匹配的key-->
+    <rabbit:direct-exchange name="${rabbit.exchange.direct}" durable="true" auto-delete="false" id="${rabbit.exchange.direct}">
+        <rabbit:bindings>
+            <rabbit:binding queue="spring-test-queue1" key="spring.test.queueKey1"/>
+            <rabbit:binding queue="spring-test-queue2" key="spring.test.queueKey2"/>
+      </rabbit:bindings>
+    </rabbit:direct-exchange>
+    
+    <!--创建消息队列模板-->
+    <!--spring template声明-->
+    <rabbit:template exchange="${rabbit.exchange.direct}" id="rabbitTemplate" connection-factory="connectionFactory"
+    	message-converter="jsonMessageConverter">
+    </rabbit:template>
+    <!--消息对象转成成json-->
+    <bean id="jsonMessageConverter" class="org.springframework.amqp.support.converter.JsonMessageConverter"></bean>
+   
+    <!-- 消费者 -->
+    <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
+       <rabbit:listener queues="spring-test-queue1" method="onMessage" ref="queueListenter"></rabbit:listener>
+    </rabbit:listener-container>
+    <rabbit:listener-container connection-factory="connectionFactory" acknowledge="auto">
+        <rabbit:listener queues="spring-test-queue2" method="onMessage" ref="queueListenter"></rabbit:listener>
+    </rabbit:listener-container>
+   <bean id="mqProducer" class="com.rabbitmq.MQProducer"></bean>
+    <!-- spring amqp默认的是jackson 的一个插件,目的将生产者生产的数据转换为json存入消息队列，由于fastjson的速度快于jackson,这里替换为fastjson的一个实现 -->
+    <!-- spring template声明-->
+    <!-- <bean id="jsonMessageConverter"  class="org.springframework.amqp.support.converter.Jackson2JsonMessageConverter"></bean>
+    <rabbit:template exchange="my-mq-exchange" id="amqpTemplate"  connection-factory="connectionFactory"  message-converter="jsonMessageConverter"/> -->
+</beans>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	   xmlns:mvc="http://www.springframework.org/schema/mvc"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop" 
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd 
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd"
+        default-lazy-init="true">
+    
+    <!-- 一个配置节解决映射器和适配器的配置注解配置 --> 
+    <!-- 默认配置json转换器 -->
+      <!-- 注入转换器conversionService和校验器validator -->
+    <mvc:annotation-driven /> 	
+	<!-- 也不用配置具体的Controller了，直接使用这个进行扫描包即可，也可以扫描service -->
+	<context:component-scan base-package="com.controller"></context:component-scan>
+	
+	<!-- 对静态资源文件的访问 (配置的拦截器会拦截静态资源所以启用默认的静态资源处理Servlet处理静态资源) -->  
+    <!-- <mvc:default-servlet-handler />  -->
+    <!-- 静态资源解析，包括js,css,img... -->
+	<mvc:resources location="/WEB-INF/static/" mapping="/static/**"></mvc:resources>
+
+	<!-- 配置视图解析器 
+		进行jsp解析，默认使用jstl标签，classpath下得有jstl的包
+	-->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix">
+			<value>/WEB-INF/jsp/</value>
+		</property>
+		<property name="suffix">
+			<value>.jsp</value>
+		</property>
+	</bean>
+	
+	<!-- 配置登录拦截器 -->
+	<!-- <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/login"/>
+			<mvc:exclude-mapping path="/manager"/>
+			<bean class="com.interceptor.LoginInterceptor" />
+		</mvc:interceptor>
+	</mvc:interceptors> -->
+</beans>
